@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +45,22 @@ class DoctorServiceTest {
         assertThat(response.getExperienceYears()).isEqualTo(8);
         assertThat(response.getEmail()).isEqualTo("dr.c@example.com");
         assertThat(response.getStatus()).isTrue();
+    }
+
+    @Test
+    @DisplayName("getDoctorById should return mapped doctor")
+    void getDoctorById() {
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(Doctor.builder()
+                .id(1L)
+                .name("Dr. A")
+                .specialization("Noi khoa")
+                .build()));
+
+        var response = doctorService.getDoctorById(1L);
+
+        assertThat(response.getId()).isEqualTo(1L);
+        assertThat(response.getName()).isEqualTo("Dr. A");
+        assertThat(response.getSpecialization()).isEqualTo("Noi khoa");
     }
 
     @Test

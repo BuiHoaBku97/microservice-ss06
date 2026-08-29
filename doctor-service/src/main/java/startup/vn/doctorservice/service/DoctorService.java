@@ -4,6 +4,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import startup.vn.doctorservice.dto.DoctorCreateRequest;
 import startup.vn.doctorservice.dto.DoctorCreateResponse;
 import startup.vn.doctorservice.dto.DoctorResponse;
@@ -35,6 +37,16 @@ public class DoctorService {
                 .experienceYears(savedDoctor.getExperienceYears())
                 .email(savedDoctor.getEmail())
                 .status(savedDoctor.getStatus())
+                .build();
+    }
+
+    public DoctorResponse getDoctorById(Long id) {
+        Doctor doctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Doctor not found"));
+        return DoctorResponse.builder()
+                .id(doctor.getId())
+                .name(doctor.getName())
+                .specialization(doctor.getSpecialization())
                 .build();
     }
 

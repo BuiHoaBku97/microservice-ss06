@@ -41,4 +41,22 @@ class PatientServiceTest {
         assertThat(response.getAddress()).isEqualTo("Ha Noi");
         assertThat(response.getMedicalHistory()).isEqualTo("Di ung thuoc");
     }
+
+    @Test
+    @DisplayName("getPatientById should return mapped patient")
+    void getPatientById() {
+        when(patientRepository.findById(1L)).thenReturn(java.util.Optional.of(Patient.builder()
+                .id(1L)
+                .fullName("Nguyen Van A")
+                .address("Ha Noi")
+                .medicalHistory("Di ung thuoc")
+                .build()));
+
+        PatientResponse response = patientService.getPatientById(1L);
+
+        assertThat(response.getId()).isEqualTo(1L);
+        assertThat(response.getFullName()).isEqualTo("Nguyen Van A");
+        assertThat(response.getAddress()).isEqualTo("Ha Noi");
+        assertThat(response.getMedicalHistory()).isEqualTo("Di ung thuoc");
+    }
 }
