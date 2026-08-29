@@ -12,6 +12,14 @@
         <option name="myGradleHome" value="" />
       </GradleProjectSettings>
       <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/doctor-service" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/doctor-service" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/medical-discovery-server" />
         <option name="modules">
           <set>
