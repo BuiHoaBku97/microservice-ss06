@@ -18,8 +18,8 @@ import startup.vn.appointmentservice.repository.AppointmentRepository;
 @RequiredArgsConstructor
 public class AppointmentService {
 
-    private static final String PATIENT_SERVICE_URL = "http://localhost:8081/api/v1/patients/{id}";
-    private static final String DOCTOR_SERVICE_URL = "http://localhost:8082/api/v1/doctors/{id}";
+    private static final String PATIENT_SERVICE_URL = "http://patient-service/api/v1/patients/{id}";
+    private static final String DOCTOR_SERVICE_URL = "http://doctor-service/api/v1/doctors/{id}";
 
     private final AppointmentRepository appointmentRepository;
     private final RestTemplate restTemplate;
