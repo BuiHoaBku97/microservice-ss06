@@ -17,6 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import startup.vn.appointmentservice.dto.AppointmentResponse;
+import startup.vn.appointmentservice.exception.GlobalExceptionHandler;
+import startup.vn.appointmentservice.exception.ServiceUnavailableException;
 import startup.vn.appointmentservice.service.AppointmentService;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,6 +26,12 @@ class AppointmentControllerTest {
 
     @Mock
     private AppointmentService appointmentService;
+
+    private MockMvc mockMvc() {
+        return MockMvcBuilders.standaloneSetup(new AppointmentController(appointmentService))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+    }
 
     @Test
     @DisplayName("POST /api/v1/appointments should create appointment")
@@ -35,9 +43,7 @@ class AppointmentControllerTest {
                 .status("PENDING")
                 .build());
 
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new AppointmentController(appointmentService)).build();
-
-        mockMvc.perform(post("/api/v1/appointments")
+        mockMvc().perform(post("/api/v1/appointments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -53,6 +59,26 @@ class AppointmentControllerTest {
     }
 
     @Test
+    @DisplayName("POST /api/v1/appointments should return 503 when doctor service is unavailable")
+    void createAppointmentServiceUnavailable() throws Exception {
+        when(appointmentService.createAppointment(any()))
+                .thenThrow(new ServiceUnavailableException("Hệ thống quản lý bác sĩ hiện không khả dụng. Vui lòng đặt lịch sau!"));
+
+        mockMvc().perform(post("/api/v1/appointments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "patientId": 1,
+                                  "doctorId": 2
+                                }
+                                """))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.status").value(503))
+                .andExpect(jsonPath("$.error").value("Service Unavailable"))
+                .andExpect(jsonPath("$.message").value("Hệ thống quản lý bác sĩ hiện không khả dụng. Vui lòng đặt lịch sau!"));
+    }
+
+    @Test
     @DisplayName("GET /api/v1/appointments/{id} should return appointment")
     void getAppointmentById() throws Exception {
         when(appointmentService.getAppointmentById(100L)).thenReturn(AppointmentResponse.builder()
@@ -62,9 +88,7 @@ class AppointmentControllerTest {
                 .status("PENDING")
                 .build());
 
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new AppointmentController(appointmentService)).build();
-
-        mockMvc.perform(get("/api/v1/appointments/100"))
+        mockMvc().perform(get("/api/v1/appointments/100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(100L))
                 .andExpect(jsonPath("$.patientId").value(1L))
@@ -82,9 +106,7 @@ class AppointmentControllerTest {
                 .status("PENDING")
                 .build()));
 
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new AppointmentController(appointmentService)).build();
-
-        mockMvc.perform(get("/api/v1/appointments"))
+        mockMvc().perform(get("/api/v1/appointments"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(100L))
                 .andExpect(jsonPath("$[0].patientId").value(1L))

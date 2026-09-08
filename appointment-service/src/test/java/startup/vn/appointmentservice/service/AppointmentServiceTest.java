@@ -19,7 +19,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import startup.vn.appointmentservice.dto.AppointmentCreateRequest;
+import startup.vn.appointmentservice.dto.AppointmentResponse;
 import startup.vn.appointmentservice.entity.Appointment;
+import startup.vn.appointmentservice.exception.ServiceUnavailableException;
 import startup.vn.appointmentservice.repository.AppointmentRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +46,7 @@ class AppointmentServiceTest {
             return appointment;
         });
 
-        var response = appointmentService.createAppointment(AppointmentCreateRequest.builder()
+        AppointmentResponse response = appointmentService.createAppointment(AppointmentCreateRequest.builder()
                 .patientId(1L)
                 .doctorId(2L)
                 .build());
@@ -67,6 +69,21 @@ class AppointmentServiceTest {
                 .build()))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Patient not found");
+    }
+
+    @Test
+    @DisplayName("createAppointment should throw ServiceUnavailableException when doctor service is unavailable")
+    void createAppointmentDoctorServiceUnavailable() {
+        when(restTemplate.getForEntity(any(String.class), any(Class.class), anyMap()))
+                .thenReturn(null)
+                .thenThrow(new org.springframework.web.client.ResourceAccessException("I/O error"));
+
+        assertThatThrownBy(() -> appointmentService.createAppointment(AppointmentCreateRequest.builder()
+                .patientId(1L)
+                .doctorId(2L)
+                .build()))
+                .isInstanceOf(ServiceUnavailableException.class)
+                .hasMessageContaining("bác sĩ");
     }
 
     @Test

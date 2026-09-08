@@ -1,17 +1,19 @@
 package startup.vn.appointmentservice.service;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import startup.vn.appointmentservice.dto.AppointmentCreateRequest;
 import startup.vn.appointmentservice.dto.AppointmentResponse;
 import startup.vn.appointmentservice.entity.Appointment;
+import startup.vn.appointmentservice.exception.ServiceUnavailableException;
 import startup.vn.appointmentservice.repository.AppointmentRepository;
 
 @Service
@@ -56,6 +58,8 @@ public class AppointmentService {
             restTemplate.getForEntity(PATIENT_SERVICE_URL, String.class, Map.of("id", patientId));
         } catch (HttpClientErrorException.NotFound ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found");
+        } catch (RestClientException ex) {
+            throw new ServiceUnavailableException("Hệ thống quản lý bệnh nhân hiện không khả dụng. Vui lòng đặt lịch sau!");
         }
     }
 
@@ -64,6 +68,8 @@ public class AppointmentService {
             restTemplate.getForEntity(DOCTOR_SERVICE_URL, String.class, Map.of("id", doctorId));
         } catch (HttpClientErrorException.NotFound ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Doctor not found");
+        } catch (RestClientException ex) {
+            throw new ServiceUnavailableException("Hệ thống quản lý bác sĩ hiện không khả dụng. Vui lòng đặt lịch sau!");
         }
     }
 
