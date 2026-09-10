@@ -25,11 +25,12 @@ public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final RestTemplate restTemplate;
+    private final PatientAvailabilityService patientAvailabilityService;
     private final DoctorAvailabilityService doctorAvailabilityService;
 
     @Transactional
     public AppointmentResponse createAppointment(AppointmentCreateRequest request) {
-        validatePatientExists(request.getPatientId());
+        patientAvailabilityService.validatePatientExists(request.getPatientId());
         doctorAvailabilityService.validateDoctorExists(request.getDoctorId());
 
         Appointment appointment = Appointment.builder()
