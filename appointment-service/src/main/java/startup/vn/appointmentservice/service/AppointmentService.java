@@ -29,7 +29,7 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentResponse createAppointment(AppointmentCreateRequest request) {
-        //validatePatientExists(request.getPatientId());
+        validatePatientExists(request.getPatientId());
         doctorAvailabilityService.validateDoctorExists(request.getDoctorId());
 
         Appointment appointment = Appointment.builder()

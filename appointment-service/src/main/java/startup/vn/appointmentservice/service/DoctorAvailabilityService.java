@@ -15,17 +15,17 @@ public class DoctorAvailabilityService {
 
     private final DoctorClient doctorClient;
 
-    @CircuitBreaker(name = "doctorServiceCB", fallbackMethod = "doctorServiceUnavailable")
+    @CircuitBreaker(name = "doctorServiceCB", fallbackMethod = "getDoctorFallback")
     public void validateDoctorExists(Long doctorId) {
         doctorClient.getDoctorById(doctorId);
     }
 
-    private void doctorServiceUnavailable(Long doctorId, Throwable throwable) {
+    private void getDoctorFallback(Long doctorId, Throwable throwable) {
         if (throwable instanceof FeignException.NotFound) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Doctor not found");
         }
 
         throw new ServiceUnavailableException(
-                "Doctor service is currently unavailable. Please try scheduling again later.");
+                "Hiện tại không thể kiểm tra thông tin bác sĩ, vui lòng thử lại sau vài giây");
     }
 }
