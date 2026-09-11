@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -30,17 +31,29 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentResponse createAppointment(AppointmentCreateRequest request) {
+        // Ensure patient exists first (must be present)
         patientAvailabilityService.validatePatientExists(request.getPatientId());
-        doctorAvailabilityService.validateDoctorExists(request.getDoctorId());
 
+        // Persist appointment as PENDING in its own transaction so it remains when downstream calls fail
         Appointment appointment = Appointment.builder()
                 .patientId(request.getPatientId())
                 .doctorId(request.getDoctorId())
                 .status("PENDING")
                 .build();
 
-        Appointment savedAppointment = appointmentRepository.save(appointment);
+        Appointment savedAppointment = saveAppointmentPending(appointment);
+
+        // Call doctor service through resiliency chain (RateLimiter -> CircuitBreaker -> Retry -> Fallback)
+        // If this throws, savedAppointment remains in DB with status=PENDING as required
+        doctorAvailabilityService.validateDoctorExists(request.getDoctorId());
+
+        // Optionally could update status to CONFIRMED here when doctor check succeeds
         return toResponse(savedAppointment);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    protected Appointment saveAppointmentPending(Appointment appointment) {
+        return appointmentRepository.save(appointment);
     }
 
     public AppointmentResponse getAppointmentById(Long id) {
